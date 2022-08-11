@@ -30,6 +30,8 @@ class Blockchain:
         new_proof = 1
         check_proof = False
         while check_proof is False:
+            # hash 연산은 개발자 정의, 비대칭성이라는 것은 인자의 순서가 바뀐 경우에 다른 값이 나올 수 있게?
+            # ex) new_proof + previous_proof = previous_proof + new_proof 이기 때문에 비대칭성을 가질 수 있는 연산으로 바꾸어야함
             hash_operation = hashlib.sha256(str(new_proof ** 2 - previous_proof ** 2).encode()).hexdigest()
             if hash_operation.startswith('0000'):
                 check_proof = True
