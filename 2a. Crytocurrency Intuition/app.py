@@ -75,6 +75,7 @@ class Blockchain:
         })
         previous_block = self.get_previous_block()
         return previous_block['index'] + 1
+        
     def add_node(self, address):
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
@@ -96,6 +97,9 @@ class Blockchain:
 
 app = Flask(__name__)
 
+# Creating an address for the node on Port 5000
+node_address = str(uuid4()).replace("-", "")
+
 blockchain = Blockchain()
 
 @app.route('/mine_block', methods = ['GET'])
@@ -104,13 +108,15 @@ def mine_block():
     previous_proof = previous_block['proof']
     proof = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
+    blockchain.add_transactions(sender = node_address, receiver= 'me', amount = 1)
     block = blockchain.create_block(proof, previous_hash)
     response = {
         'message': 'Congratulations, you just mined a block!',
         'index': block['index'],
         'timestamp': block['timestamp'],
         'proof': block['proof'],
-        'previous_hash': block['previous_hash']
+        'previous_hash': block['previous_hash'],
+        'transactions': block['transactions']
     }
     return jsonify(response), 200
 
@@ -130,5 +136,27 @@ def is_valid():
 
     return jsonify(response), 200
 
+@app.route('/add_transaction', method = ['POST'])
+def add_transaction():
+    json = request.get_json()
+    transaction_keys = ['sender', 'reciever', 'aamount']
+    if not all (key is json for key in transaction_keys):
+        return "Some elements of the transaction are missing", 400
+    index = blockchain.add_transactions([json['sender'], json['reciever'], json['amount']])
+    return jsonify({'message', f'mother fater gentleman {index}'}), 201
+
+@app.route('/connect_node', method = ['POST'])
+def connect_node():
+    json = request.get_json()
+    nodes = json.get('nodes')
+    if nodes is None:
+        return "No node", 400
+    for node in nodes:
+        blockchain.add_node(node)
+    response = {
+        'message': 'All the nodes are connected. The Adcoin Blockchain now contains the following nodes:',
+        'total_nodes':  list(blockchain.nodes)
+    }
+    return jsonify(response), 201
 # Running the app
 app.run(host='0.0.0.0', port=5000)
