@@ -136,7 +136,7 @@ def is_valid():
 
     return jsonify(response), 200
 
-@app.route('/add_transaction', method = ['POST'])
+@app.route('/add_transaction', methods = ['POST'])
 def add_transaction():
     json = request.get_json()
     transaction_keys = ['sender', 'reciever', 'aamount']
@@ -145,7 +145,7 @@ def add_transaction():
     index = blockchain.add_transactions([json['sender'], json['reciever'], json['amount']])
     return jsonify({'message', f'mother fater gentleman {index}'}), 201
 
-@app.route('/connect_node', method = ['POST'])
+@app.route('/connect_node', methods = ['POST'])
 def connect_node():
     json = request.get_json()
     nodes = json.get('nodes')
@@ -158,5 +158,15 @@ def connect_node():
         'total_nodes':  list(blockchain.nodes)
     }
     return jsonify(response), 201
+
+@app.route('/replace_chain', methods = ['GET'])
+def replace_chain():
+    is_chain_replaced = blockchain.replace_chain()
+    if is_chain_replaced:
+        message = 'The nodes had different chains so the chain was replaced by the longest one.'
+    else:
+        message = 'All good. The chain is the longest one.'
+    return jsonify({ 'message': message, 'chain': blockchain.chain }), 200
+
 # Running the app
-app.run(host='0.0.0.0', port=5000)
+app.run(host='0.0.0.0', port=5002)
